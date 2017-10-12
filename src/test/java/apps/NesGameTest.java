@@ -23,7 +23,7 @@ class NesGameTest {
             new NesGame(Paths.get("./roms/nes/zelda.nes"), false);
         } catch (IOException e) {
             e.printStackTrace();
-            Assertions.fail("Error");
+            Assertions.fail("Err");
         }
     }
 
