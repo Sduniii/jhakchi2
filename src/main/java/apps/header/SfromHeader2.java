@@ -1,4 +1,4 @@
-package apps.helper;
+package apps.header;
 
 import apps.SnesGame;
 import tools.ArrayTool;

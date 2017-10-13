@@ -1,9 +1,9 @@
 package apps;
 
 import Properties.Resources;
-import apps.helper.SfromHeader1;
-import apps.helper.SfromHeader2;
-import apps.helper.SnesRomHeader;
+import apps.header.SfromHeader1;
+import apps.header.SfromHeader2;
+import apps.header.SnesRomHeader;
 import apps.wrapper.SnesRomHeaderWrapper;
 import config.ConfigIni;
 import enums.ConsoleType;
@@ -12,12 +12,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import lombok.Getter;
 
-import lombok.experimental.var;
 import tools.Debug;
 import tools.FileTool;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;

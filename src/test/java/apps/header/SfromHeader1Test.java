@@ -1,15 +1,12 @@
-package apps.helper;
+package apps.header;
 
-import apps.FxStarter;
 import apps.ParameterWrapper;
 import apps.SnesGame;
 import config.ConfigIni;
 import enums.ConsoleType;
 import fx.JavaFXThreadingRule;
-import javafx.application.Application;
 import org.junit.Rule;
 import org.junit.Test;
-import tools.Debug;
 
 
 import java.nio.file.Files;
