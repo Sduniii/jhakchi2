@@ -1,6 +1,5 @@
 package apps.wrapper;
 
-import apps.ParameterWrapper;
 import apps.SnesGame;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,6 @@
 package apps;
 
+import apps.wrapper.ParameterWrapper;
 import config.ConfigIni;
 import enums.ConsoleType;
 

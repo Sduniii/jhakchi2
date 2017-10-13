@@ -4,6 +4,8 @@ import Properties.Resources;
 import apps.header.SfromHeader1;
 import apps.header.SfromHeader2;
 import apps.header.SnesRomHeader;
+import apps.wrapper.CachedGameInfo;
+import apps.wrapper.ParameterWrapper;
 import apps.wrapper.SnesRomHeaderWrapper;
 import config.ConfigIni;
 import enums.ConsoleType;
@@ -197,7 +199,7 @@ public class SnesGame extends MiniApplication implements ICloverAutofill {
         add("WWF SUPER WRESTLEMANI"); // WWF Super WrestleMania (U) [!].smc
         add("WRESTLEMANIA"); // WWF WrestleMania - The Arcade Game (U) [!].smc
     }};
-   // private static Dictionary<Long, CachedGameInfo> gameInfoCache = null;
+    private static Map<Long, CachedGameInfo> gameInfoCache = null;
 
     public static Boolean patch(ParameterWrapper wrapper) throws Exception {
         String ext = FileTool.getExtension(wrapper.getInputFileName().getFileName().toString()).toLowerCase();
@@ -338,9 +340,9 @@ public class SnesGame extends MiniApplication implements ICloverAutofill {
         System.arraycopy(sfromHeader2Raw, 0, result, sfromHeader1Raw.length + wrapper.getRawRomData().length, sfromHeader2Raw.length);
 
         if (romHeader.getSramSize() > 0)
-            wrapper.setSaveCount((byte)3);
+            wrapper.setSaveCount((byte) 3);
         else
-            wrapper.setSaveCount((byte)0);
+            wrapper.setSaveCount((byte) 0);
 
         boolean problemGame = problemGames.contains(wrapper.getGameTitle());
 
@@ -394,16 +396,6 @@ public class SnesGame extends MiniApplication implements ICloverAutofill {
 //        throw new Exception(".sfrom file not found");
 //    }
 //
-//
-//    private class CachedGameInfo {
-//        public String Name;
-//        public byte Players;
-//        public Boolean Simultaneous;
-//        public String ReleaseDate;
-//        public String Publisher;
-//        public String Region;
-//        public String CoverUrl;
-//    }
 //
 //    public static void LoadCache() {
 //        try {

@@ -2,7 +2,7 @@ package gui.controller;
 
 import apps.AppTypeCollection;
 import apps.MiniApplication;
-import apps.ParameterWrapper;
+import apps.wrapper.ParameterWrapper;
 import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
 import tools.Debug;

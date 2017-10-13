@@ -1,6 +1,8 @@
 package apps;
 
 import Properties.Resources;
+import apps.wrapper.CachedGameInfo;
+import apps.wrapper.ParameterWrapper;
 import config.ConfigIni;
 import enums.ConsoleType;
 import gamegenie.GameGenieFormatException;
@@ -10,7 +12,6 @@ import gui.controls.CustomButtonType;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import lombok.Getter;
-import lombok.Setter;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -207,24 +208,6 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
                 }
             }
         }
-    }
-
-    private static class CachedGameInfo {
-        @Getter
-        @Setter
-        private String name;
-        @Getter
-        @Setter
-        private byte players;
-        @Getter
-        @Setter
-        private String releaseDate;
-        @Getter
-        @Setter
-        private String publisher;
-        @Getter
-        @Setter
-        private String region;
     }
 
 

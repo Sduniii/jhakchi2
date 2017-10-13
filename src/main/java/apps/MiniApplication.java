@@ -1,6 +1,7 @@
 package apps;
 
 import Properties.Resources;
+import apps.wrapper.ParameterWrapper;
 import config.ConfigIni;
 import enums.ConsoleType;
 import gui.controls.CustomButtonType;

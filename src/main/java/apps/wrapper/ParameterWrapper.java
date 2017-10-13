@@ -1,4 +1,4 @@
-package apps;
+package apps.wrapper;
 
 import javafx.scene.image.Image;
 import lombok.Getter;

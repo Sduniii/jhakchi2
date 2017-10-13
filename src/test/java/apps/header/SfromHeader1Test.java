@@ -1,6 +1,6 @@
 package apps.header;
 
-import apps.ParameterWrapper;
+import apps.wrapper.ParameterWrapper;
 import apps.SnesGame;
 import config.ConfigIni;
 import enums.ConsoleType;
