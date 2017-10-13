@@ -2,9 +2,7 @@ package gui.controller;
 
 import apps.AppTypeCollection;
 import apps.MiniApplication;
-import apps.PatchParameterWrapper;
-import config.ConfigIni;
-import enums.ConsoleType;
+import apps.ParameterWrapper;
 import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
 import tools.Debug;
@@ -31,7 +29,7 @@ public class OverviewController implements Initializable {
             Constructor<?> constructor = theClass.getDeclaredConstructor(Path.class,boolean.class);
             MiniApplication m = (MiniApplication) constructor.newInstance(Paths.get("hahaah.gzt"), true);
 
-            Method patch = theClass.getDeclaredMethod("patch", PatchParameterWrapper.class);
+            Method patch = theClass.getDeclaredMethod("patch", ParameterWrapper.class);
             Path inputFileName = Paths.get("file.bla");
             byte[] rawRomData = {0,0,0,0,0,0,0,0,0,0};
             char prefix = 'Z';
@@ -43,7 +41,7 @@ public class OverviewController implements Initializable {
             long crc32 = Integer.toUnsignedLong(0xaadfff);
             boolean patched = false;
             if (patch != null) {
-                PatchParameterWrapper wrapper =  new PatchParameterWrapper(inputFileName, application, outputFileName, args, rawRomData, prefix, cover, crc32, saveCount);
+                ParameterWrapper wrapper =  new ParameterWrapper(inputFileName, application, outputFileName, args, rawRomData, prefix, cover, crc32, saveCount);
                 boolean result = (boolean) patch.invoke(null,wrapper);
                 if (!result) return;
                 rawRomData = wrapper.getRawRomData();

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class NesGame extends MiniApplication implements ICloverAutofill, ISupportGameGenie {
 
     public static final char PREFIX = 'H';
-    private static boolean ignoreMapper;
+    private static Boolean ignoreMapper;
     public final static String DEFAULT_ARGS = "--guest-overscan-dimensions 0,0,9,3 --initial-fadein-durations 10,2 --volume 75 --enable-armet";
     private static Map<Long, CachedGameInfo> gameInfoCache = null;
     private static byte[] supportedMappers = new byte[]{0, 1, 2, 3, 4, 5, 7, 9, 10, 86, 87, -72};
@@ -40,7 +40,7 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
         super(path);
     }
 
-    public NesGame(Path path, boolean ignoreEmptyConfig) throws IOException {
+    public NesGame(Path path, Boolean ignoreEmptyConfig) throws IOException {
         super(path, ignoreEmptyConfig);
     }
 
@@ -49,8 +49,8 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
         return "(nes | famicom)";
     }
 
-    public static boolean patch(PatchParameterWrapper wrapper) throws Exception {
-        boolean patched = findPatch(wrapper);
+    public static Boolean patch(ParameterWrapper wrapper) throws Exception {
+        Boolean patched = findPatch(wrapper);
         NesFile nesFile;
         try {
             nesFile = new NesFile(wrapper.getRawRomData());
@@ -73,8 +73,8 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
         }
         if (!ArrayTool.contains(supportedMappers, nesFile.mapper) &&
                 (ConfigIni.consoleType == ConsoleType.NES || ConfigIni.consoleType == ConsoleType.Famicom) &&
-                (!ignoreMapper)) {
-            if (ignoreMapper) { //always False
+                (ignoreMapper == null || !ignoreMapper)) {
+            if (ignoreMapper == null) { //always False
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION, String.format(Resources.MapperNotSupported, wrapper.getInputFileName().getFileName().toString(), nesFile.mapper), ButtonType.CANCEL, CustomButtonType.IGNORE);
                 alert.showAndWait();
                 if (alert.getResult() == ButtonType.CANCEL)
@@ -87,7 +87,7 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
 
         if ((nesFile.mirroring == NesFile.MirroringType.FourScreenVram) &&
                 (ConfigIni.consoleType == ConsoleType.NES || ConfigIni.consoleType == ConsoleType.Famicom) &&
-                (!ignoreMapper)) {
+                (ignoreMapper == null || !ignoreMapper)) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION, String.format(Resources.FourScreenNotSupported, wrapper.getInputFileName().getFileName().toString()), ButtonType.CANCEL, ButtonType.NO);
             alert.showAndWait();
             if (alert.getResult() == ButtonType.CANCEL)
@@ -127,7 +127,7 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
     }
 
     @Override
-    public boolean tryAutofill(long crc32) {
+    public Boolean tryAutofill(long crc32) {
         CachedGameInfo gameInfo;
         if (gameInfoCache != null && (gameInfo = gameInfoCache.get(crc32)) != null) {
             this.setName(gameInfo.getName().replace("_", " ").replace("  ", " ").trim());
@@ -200,7 +200,7 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (qName.equals("game")) {
                 //Debug.WriteLine("End: " +qName);
-                if(gameInfoCache != null) {
+                if (gameInfoCache != null) {
                     gameInfoCache.put(Long.parseLong(crc, 16), cachedGameInfo);
                     cachedGameInfo = null;
                     crc = null;

@@ -119,16 +119,16 @@ public class NesFile {
 
         int offset = 16;
         if (trainer != null) {
-            ArrayTool.copy(data, offset, trainer, 0, 512);
+            System.arraycopy(data, offset, trainer, 0, 512);
             offset += 512;
         }
 
         prg = new byte[prgSize];
-        ArrayTool.copy(data, offset, prg, 0, Math.max(0, Math.min(prgSize, data.length - offset))); // Ignore end of for some bad ROMs
+        System.arraycopy(data, offset, prg, 0, Math.max(0, Math.min(prgSize, data.length - offset))); // Ignore end of for some bad ROMs
         offset += prgSize;
 
         chr = new byte[chrSize];
-        ArrayTool.copy(data, offset, chr, 0, Math.max(0, Math.min(chrSize, data.length - offset)));
+        System.arraycopy(data, offset, chr, 0, Math.max(0, Math.min(chrSize, data.length - offset)));
     }
 
     public NesFile(Path fileName) throws Exception {
@@ -192,8 +192,8 @@ public class NesFile {
         if (prg == null) prg = new byte[0];
         if (chr == null) chr = new byte[0];
         byte[] alldata = new byte[prg.length + chr.length];
-        ArrayTool.copy(prg, 0, alldata, 0, prg.length);
-        ArrayTool.copy(chr, 0, alldata, prg.length, chr.length);
+        System.arraycopy(prg, 0, alldata, 0, prg.length);
+        System.arraycopy(chr, 0, alldata, prg.length, chr.length);
         return md.digest(alldata);
     }
 
@@ -202,8 +202,8 @@ public class NesFile {
         if (prg == null) prg = new byte[0];
         if (chr == null) chr = new byte[0];
         byte[] alldata = new byte[prg.length + chr.length];
-        ArrayTool.copy(prg, 0, alldata, 0, prg.length);
-        ArrayTool.copy(chr, 0, alldata, prg.length, chr.length);
+        System.arraycopy(prg, 0, alldata, 0, prg.length);
+        System.arraycopy(chr, 0, alldata, prg.length, chr.length);
         return MiniApplication.crc32(alldata);
 
     }

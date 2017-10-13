@@ -6,25 +6,33 @@ import lombok.Setter;
 
 import java.nio.file.Path;
 
-public class PatchParameterWrapper {
-    @Setter @Getter
-    private Path inputFileName,outputFileName;
-    @Setter @Getter
+public class ParameterWrapper {
+    @Setter
+    @Getter
+    private Path inputFileName, outputFileName;
+    @Setter
+    @Getter
     private String application, args;
-    @Setter @Getter
+    @Setter
+    @Getter
     private byte[] rawRomData;
-    @Setter @Getter
+    @Setter
+    @Getter
     private char prefix;
-    @Setter @Getter
+    @Setter
+    @Getter
     private Image cover;
-    @Setter @Getter
+    @Setter
+    @Getter
     private long crc32;
-    @Getter @Setter
+    @Getter
+    @Setter
     private byte saveCount;
-    @Getter @Setter
+    @Getter
+    @Setter
     private Path patch;
 
-    public PatchParameterWrapper(){
+    public ParameterWrapper() {
         this.inputFileName = null;
         this.application = null;
         this.outputFileName = null;
@@ -37,7 +45,7 @@ public class PatchParameterWrapper {
         this.patch = null;
     }
 
-    public PatchParameterWrapper(Path inputFileName, String application, Path outputFileName, String args, byte[] rawRomData, char prefix, Image cover, long crc32, byte saveCount) {
+    public ParameterWrapper(Path inputFileName, String application, Path outputFileName, String args, byte[] rawRomData, char prefix, Image cover, long crc32, byte saveCount) {
         this.inputFileName = inputFileName;
         this.application = application;
         this.outputFileName = outputFileName;
@@ -48,5 +56,13 @@ public class PatchParameterWrapper {
         this.crc32 = crc32;
         this.saveCount = saveCount;
         this.patch = null;
+    }
+
+    public boolean changeRawRomData(int address, byte value) {
+        if (rawRomData != null && rawRomData.length >= address && address >= 0) {
+            rawRomData[address] = value;
+            return true;
+        }
+        return false;
     }
 }

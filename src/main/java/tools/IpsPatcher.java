@@ -1,8 +1,8 @@
 package tools;
 
-import apps.PatchParameterWrapper;
+import apps.ParameterWrapper;
 
 public class IpsPatcher {
-    public static void patch(PatchParameterWrapper wrapper) {
+    public static void patch(ParameterWrapper wrapper) {
     }
 }

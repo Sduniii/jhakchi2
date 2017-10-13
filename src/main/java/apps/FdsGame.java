@@ -2,7 +2,6 @@ package apps;
 
 import config.ConfigIni;
 import enums.ConsoleType;
-import tools.ArrayTool;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -20,11 +19,11 @@ public class FdsGame extends MiniApplication {
         super(path, ignoreEmptyConfig);
     }
 
-    public static boolean patch(PatchParameterWrapper wrapper) throws IOException {
+    public static boolean patch(ParameterWrapper wrapper) throws IOException {
         findPatch(wrapper);
         if(new String(wrapper.getRawRomData(),0,3).equals("FDS")){
             byte[] fdsDataNoHeader = new byte[wrapper.getRawRomData().length - 0x10];
-            ArrayTool.copy(wrapper.getRawRomData(),0x10,fdsDataNoHeader,0,fdsDataNoHeader.length);
+            System.arraycopy(wrapper.getRawRomData(),0x10, fdsDataNoHeader,0,fdsDataNoHeader.length);
             wrapper.setRawRomData(fdsDataNoHeader);
             wrapper.setCrc32(crc32(wrapper.getRawRomData()));
             findPatch(wrapper);

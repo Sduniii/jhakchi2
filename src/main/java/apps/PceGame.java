@@ -1,4 +1,20 @@
 package apps;
 
-public class PceGame {
+import java.io.IOException;
+import java.nio.file.Path;
+
+public class PceGame extends MiniApplication{
+
+    public PceGame(Path path) throws IOException {
+        super(path);
+    }
+
+    public PceGame(Path path, boolean ignoreEmptyConfig) throws IOException {
+        super(path, ignoreEmptyConfig);
+    }
+
+    @Override
+    public String getGoogleSuffix() {
+        return "(pce | pc engine | turbografx 16)";
+    }
 }

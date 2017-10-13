@@ -34,10 +34,12 @@ public class Resources {
     public static Image blank_gg;
     public static Image blank_2600;
     public static Image blank_arcade;
+    public static Image blank_snes_eu_jp;
     public static String PatchQ = getInstnance().getBundle().getString("PatchQ");
     public static String Ignore = getInstnance().getBundle().getString("Ignore");
     public static String MapperNotSupported = getInstnance().getBundle().getString("MapperNotSupported");
     public static String FourScreenNotSupported = getInstnance().getBundle().getString("FourScreenNotSupported");
+    public static String Need3rdPartyEmulator = getInstnance().getBundle().getString("Need3rdPartyEmulator");
 
     private static Image getImage(String s) {
         if (!s.startsWith("/")) s = "/" + s;

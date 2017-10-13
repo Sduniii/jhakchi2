@@ -300,9 +300,9 @@ public class MiniApplication implements IMenuElement {
                 prefix = appinfo.prefix;
                 cover = appinfo.defaultCover;
                 Class<?> clazz = appinfo.clazz;
-                Method patch = clazz.getDeclaredMethod("patch", PatchParameterWrapper.class);
+                Method patch = clazz.getDeclaredMethod("patch", ParameterWrapper.class);
                 if (patch != null) {
-                    PatchParameterWrapper wrapper = new PatchParameterWrapper(inputFileName, application, outputFileName, args, rawRomData, prefix, cover, crc32, saveCount);
+                    ParameterWrapper wrapper = new ParameterWrapper(inputFileName, application, outputFileName, args, rawRomData, prefix, cover, crc32, saveCount);
                     boolean result = (boolean) patch.invoke(null, wrapper);
                     if (!result) return null;
                     rawRomData = wrapper.getRawRomData();
@@ -318,7 +318,7 @@ public class MiniApplication implements IMenuElement {
             }
 
             if (!patched) {
-                PatchParameterWrapper wrapper = new PatchParameterWrapper();
+                ParameterWrapper wrapper = new ParameterWrapper();
                 wrapper.setRawRomData(rawRomData);
                 wrapper.setInputFileName(inputFileName);
                 wrapper.setCrc32(crc32);
@@ -498,7 +498,7 @@ public class MiniApplication implements IMenuElement {
         return true;
     }
 
-    protected static boolean findPatch(PatchParameterWrapper wrapper) throws IOException {
+    protected static boolean findPatch(ParameterWrapper wrapper) throws IOException {
         Path patch = null;
         Path patchesDirectory = Paths.get(".", "patches");
         if (!Files.exists(patchesDirectory)) Files.createDirectory(patchesDirectory);
