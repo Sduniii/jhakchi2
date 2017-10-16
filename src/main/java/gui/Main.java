@@ -2,10 +2,12 @@ package gui;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipNativeInitializationException;
 import tools.Debug;
@@ -36,6 +38,10 @@ public class Main extends Application {
         if(root != null){
             Scene scene = new Scene(root);
             primaryStage.setTitle("Jhakchi");
+            primaryStage.setOnCloseRequest(e -> {
+                Platform.exit();
+                System.exit(0);
+            });
             primaryStage.setScene(scene);
             primaryStage.show();
         }
