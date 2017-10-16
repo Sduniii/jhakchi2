@@ -121,7 +121,7 @@
             </HBox>
             <ToolBar maxHeight="25.0" minHeight="25.0" prefHeight="25.0" styleClass="background">
                <items>
-                  <Circle radius="7.0" stroke="#00000089" strokeType="INSIDE" strokeWidth="0.5">
+                  <Circle fx:id="connectedCircle" radius="7.0" stroke="#00000089" strokeType="INSIDE" strokeWidth="0.5">
                      <fill>
                         <RadialGradient focusAngle="-25.71" focusDistance="0.4047619047619049" radius="1.0">
                            <stops>

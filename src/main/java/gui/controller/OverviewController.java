@@ -3,8 +3,18 @@ package gui.controller;
 import apps.AppTypeCollection;
 import apps.MiniApplication;
 import apps.wrapper.ParameterWrapper;
+import clovershell.Clovershell;
+import clovershell.ConnectedListener;
+import clovershell.DataReceivedListener;
+import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.Circle;
 import tools.Debug;
 import tools.UsbDevices;
 
@@ -17,59 +27,23 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 
-public class OverviewController implements Initializable {
+public class OverviewController implements Initializable, ConnectedListener {
+
+    @FXML
+    Circle connectedCircle;
+
     public void initialize(URL location, ResourceBundle resources) {
-        UsbDevices.openConnection();
-        Debug.WriteLine(UsbDevices.findDevice((short)0x1f3a,(short)0xefe8));
-        UsbDevices.closeConnection();
-
-        AppTypeCollection.AppInfo app = AppTypeCollection.ApplicationTypes[2];
-        try {
-            Class<?> theClass = app.clazz;
-            Constructor<?> constructor = theClass.getDeclaredConstructor(Path.class,boolean.class);
-            MiniApplication m = (MiniApplication) constructor.newInstance(Paths.get("hahaah.gzt"), true);
-
-            Method patch = theClass.getDeclaredMethod("patch", ParameterWrapper.class);
-            Path inputFileName = Paths.get("file.bla");
-            byte[] rawRomData = {0,0,0,0,0,0,0,0,0,0};
-            char prefix = 'Z';
-            String application = "/bin/nes";
-            Path outputFileName = Paths.get("file.bla.bla");
-            String args = "";
-            Image cover = null;
-            byte saveCount = 0;
-            long crc32 = Integer.toUnsignedLong(0xaadfff);
-            boolean patched = false;
-            if (patch != null) {
-                ParameterWrapper wrapper =  new ParameterWrapper(inputFileName, application, outputFileName, args, rawRomData, prefix, cover, crc32, saveCount);
-                boolean result = (boolean) patch.invoke(null,wrapper);
-                if (!result) return;
-                rawRomData = wrapper.getRawRomData();
-                prefix = wrapper.getPrefix();
-                application = wrapper.getApplication();
-                outputFileName = wrapper.getOutputFileName();
-                args = wrapper.getArgs();
-                cover = wrapper.getCover();
-                saveCount = wrapper.getSaveCount();
-                crc32 = wrapper.getCrc32();
-                patched = true;
-            }
-            Debug.WriteLine("rawromdata: " + Arrays.toString(rawRomData));
-            Debug.WriteLine("prefix: " + prefix);
-            Debug.WriteLine("app: " + application);
-            Debug.WriteLine("out: " + outputFileName);
-            Debug.WriteLine("args: " + args);
-            Debug.WriteLine("cover: " + cover);
-            Debug.WriteLine("savecount: " + saveCount);
-            Debug.WriteLine("crc32: " + crc32);
-            Debug.WriteLine("patched: " + patched);
-
-            Debug.WriteLine();
-            Debug.WriteLine("'5gggg".replaceAll("'(\\d)","`$1"));
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
+        Clovershell clovershell = new Clovershell();
+        clovershell.addListener(this);
+        Platform.runLater(() -> clovershell.setEnabled(true));
     }
 
 
+    @Override
+    public void onConnected(boolean b) {
+        if (b)
+            connectedCircle.setFill(new RadialGradient(-25.71, 0.4047619047619049, 0, 0, 1.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(0.18888888888888888, Color.WHITE), new Stop(0.8025925925925926, Color.GREEN), new Stop(1.0, Color.GREEN)));
+        else
+            connectedCircle.setFill(new RadialGradient(-25.71, 0.4047619047619049, 0, 0, 1.0, true, CycleMethod.NO_CYCLE, new Stop(0, Color.WHITE), new Stop(0.18888888888888888, Color.WHITE), new Stop(0.8025925925925926, Color.RED), new Stop(1.0, Color.RED)));
+    }
 }

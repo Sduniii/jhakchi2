@@ -2,6 +2,10 @@ package tools;
 
 import org.usb4java.*;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+
 public class UsbDevices {
 
     private static Boolean isConnected = false;
@@ -45,6 +49,43 @@ public class UsbDevices {
         }
 
         // Device not found
+        return null;
+    }
+
+    public static int write(DeviceHandle handle, byte[] data, byte outEndpoint, int timeout)
+    {
+        if(isConnected) {
+            ByteBuffer buffer = BufferUtils.allocateByteBuffer(data.length);
+            buffer.put(data);
+            IntBuffer transferred = BufferUtils.allocateIntBuffer();
+            int result = LibUsb.bulkTransfer(handle, outEndpoint, buffer,
+                    transferred, timeout);
+            if (result != LibUsb.SUCCESS) {
+                Debug.WriteLine("Unable to send data " + result);
+                return -1;
+            }
+            int r =  transferred.get();
+            System.out.println(r + " bytes sent to device");
+            return r;
+        }
+        return -1;
+    }
+
+
+    public static ByteBuffer read(DeviceHandle handle, int size, byte inEndpoint, int timeout)
+    {
+        if(isConnected) {
+            ByteBuffer buffer = BufferUtils.allocateByteBuffer(size).order(ByteOrder.LITTLE_ENDIAN);
+            IntBuffer transferred = BufferUtils.allocateIntBuffer();
+            int result = LibUsb.bulkTransfer(handle, inEndpoint, buffer,
+                    transferred, timeout);
+            if (result != LibUsb.SUCCESS) {
+                Debug.WriteLine("Unable to read data " + result);
+                return null;
+            }
+            System.out.println(transferred.get() + " bytes read from device");
+            return buffer;
+        }
         return null;
     }
 
