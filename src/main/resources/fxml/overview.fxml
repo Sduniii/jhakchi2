@@ -1,14 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import gui.controls.GroupBox?>
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.RadialGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.controller.OverviewController">
+<BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.controller.OverviewController">
     <top>
         <MenuBar BorderPane.alignment="CENTER">
             <menus>
@@ -30,11 +49,120 @@
             </menus>
         </MenuBar>
     </top>
-    <center>
-        <HBox prefHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <GroupBox title="Game options">
-                <Label text="Test2" />
-            </GroupBox>
-        </HBox>
-    </center>
+   <center>
+      <TabPane styleClass="background-lighter" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+        <tabs>
+          <Tab text="Games">
+               <content>
+                  <HBox styleClass="background">
+                     <children>
+                        <ListView prefHeight="200.0" prefWidth="200.0">
+                           <HBox.margin>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </HBox.margin>
+                        </ListView>
+                        <TitledPane animated="false" collapsible="false" text="Spieleoptionen" textFill="#96b946">
+                            <HBox.margin>
+                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                            </HBox.margin>
+                           <font>
+                              <Font name="System Bold" size="11.0" />
+                           </font>
+                           <content>
+                              <GridPane styleClass="background">
+                                <columnConstraints>
+                                  <ColumnConstraints hgrow="SOMETIMES" />
+                                  <ColumnConstraints hgrow="SOMETIMES" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="Name:" textFill="#96b946" />
+                                    <TextField GridPane.columnIndex="1">
+                                       <GridPane.margin>
+                                          <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                       </GridPane.margin>
+                                    </TextField>
+                                 </children>
+                              </GridPane>
+                           </content>
+                        </TitledPane>
+                     </children>
+                  </HBox>
+               </content>
+          </Tab>
+          <Tab text="Mods">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" styleClass="background" />
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
+   </center>
+   <bottom>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <HBox styleClass="background">
+               <children>
+                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Add more games" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Synchronize with NES/SNES" HBox.hgrow="ALWAYS">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin>
+                  </Button>
+               </children>
+            </HBox>
+            <ToolBar maxHeight="25.0" minHeight="25.0" prefHeight="25.0" styleClass="background">
+               <items>
+                  <Circle radius="7.0" stroke="#00000089" strokeType="INSIDE" strokeWidth="0.5">
+                     <fill>
+                        <RadialGradient focusAngle="-25.71" focusDistance="0.4047619047619049" radius="1.0">
+                           <stops>
+                              <Stop color="WHITE" />
+                              <Stop color="WHITE" offset="0.18888888888888888" />
+                              <Stop color="RED" offset="0.8025925925925926" />
+                              <Stop color="RED" offset="1.0" />
+                           </stops>
+                        </RadialGradient>
+                     </fill>
+                  </Circle>
+                  <Separator layoutX="62.0" layoutY="10.0" orientation="VERTICAL">
+                     <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </padding>
+                  </Separator>
+                  <Label text="Label">
+                     <font>
+                        <Font size="11.0" />
+                     </font></Label>
+                  <Separator orientation="VERTICAL">
+                     <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </padding></Separator>
+                  <Label layoutX="38.0" layoutY="10.0" text="Label">
+                     <font>
+                        <Font size="11.0" />
+                     </font>
+                  </Label>
+                  <Separator layoutX="72.0" layoutY="10.0" orientation="VERTICAL">
+                     <padding>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </padding>
+                  </Separator>
+                  <ProgressBar maxHeight="15.0" minHeight="15.0" progress="0.55" />
+               </items>
+            </ToolBar>
+         </children>
+      </VBox>
+   </bottom>
+   <stylesheets>
+      <URL value="@../css/main.css" />
+   </stylesheets>
 </BorderPane>

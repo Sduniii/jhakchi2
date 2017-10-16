@@ -1,0 +1,102 @@
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-opacity: 0;
+    -fx-background-color: #3c3c3c;
+}
+
+.tab-pane {
+    -fx-tab-min-width: 90px;
+}
+
+.tab {
+    -fx-background-insets: 0 1 0 1, 0, 0;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #c3c3c3;
+
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #3c3c3c;
+}
+
+.tab .tab-label {
+    -fx-alignment: CENTER;
+    -fx-text-fill: #828282;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.tab:selected .tab-label {
+    -fx-alignment: CENTER;
+    -fx-text-fill: #96b946;
+}
+
+.tab-pane:top *.tab-header-area {
+    -fx-background-insets: 0, 0 0 1 0;
+    /* -fx-padding: 0.416667em 0.166667em 0.0em 0.833em; /* 5 2 0 10 */
+    -fx-padding: 0.416667em 0.166667em 0.0em 0.0em; /* overridden as 5 2 0 0 */
+}
+
+.background {
+    -fx-background-color: #3c3c3c;
+}
+
+.background-lighter {
+    -fx-background-color: #646464;;
+}
+
+.titled-pane > .title {
+    -fx-padding: 5px;
+    -fx-background-color: #646464;
+    -fx-font: bold 7px;
+    -fx-text-fill: #96b946;
+}
+
+.label {
+    -fx-text-fill: #96b946;
+}
+
+.separator *.line {
+    -fx-border-style: solid;
+    -fx-border-width: 0 1,0,0;
+    -fx-border-color: #96b946;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * ProgressBar                                                                 *
+ *                                                                             *
+ ******************************************************************************/
+.progress-bar .bar {
+    -fx-background-color: #96b946;
+    -fx-background-insets: 3;
+    -fx-padding: 1em;
+}
+.progress-bar:indeterminate .bar {
+    -fx-background-color: #96b946;
+    -fx-border-style:none;
+}
+.progress-bar .track {
+    -fx-background-color: -fx-box-border, rgb(231,231,231);
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * TextField                                                                   *
+ *                                                                             *
+ ******************************************************************************/
+.text-field {
+    -fx-font: 12px "Segoe UI";
+    -fx-text-fill: #3c3c3c;
+    -fx-background-radius: 0;
+    -fx-highlight-fill: #96b946;
+    -fx-background-color: -fx-box-border, white;
+    -fx-border-color: transparent;
+    -fx-padding: 5px;
+}
+.text-field:focused {
+    -fx-background-color: -fx-box-border,-fx-box-border, white;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+}
