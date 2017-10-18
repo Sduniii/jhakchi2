@@ -1,0 +1,2 @@
+overmount "/bin"
+overmount "/etc"

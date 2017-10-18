@@ -10,7 +10,7 @@ class NesGameTest {
     @Test
     void loadCache() {
         try {
-            NesGame.loadCache();
+            new Thread(NesGame.loadCache).start();
         } catch (Exception e) {
             e.printStackTrace();
             assert false;

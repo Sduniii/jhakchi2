@@ -1,8 +1,8 @@
 package clovershell;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.usb4java.DeviceHandle;
-import org.usb4java.LibUsb;
-import org.usb4java.Transfer;
 import tools.UsbDevices;
 
 public class EndpointWriter {
@@ -10,6 +10,9 @@ public class EndpointWriter {
     private byte endp;
     private DeviceHandle handle;
     private int timeout;
+    @Getter
+    @Setter
+    boolean locked;
 
     public EndpointWriter(DeviceHandle handle, byte endp, int timeout) {
         this.handle = handle;

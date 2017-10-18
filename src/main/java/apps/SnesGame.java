@@ -14,10 +14,17 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import lombok.Getter;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 import tools.Debug;
 import tools.FileTool;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -397,12 +404,37 @@ public class SnesGame extends MiniApplication implements ICloverAutofill {
 //    }
 //
 //
-//    public static void LoadCache() {
+    public static Runnable loadCahe = ()-> {
 //        try {
-//            var xmlDataBasePath = Path.combine(Path.combine(Program.baseDirectoryInternal, "data"), "snescarts.xml");
+//            try {
+//                Path xmlDataBasePath = Paths.get(".", "data", "snescarts.xml");
+//                Debug.WriteLine("Loading " + xmlDataBasePath);
+//                Debug.WriteLine(xmlDataBasePath.toFile().exists());
+//
+//                if (Files.exists(xmlDataBasePath)) {
+//                    SAXParserFactory factory = SAXParserFactory.newInstance();
+//                    SAXParser saxParser = null;
+//
+//                    saxParser = factory.newSAXParser();
+//                    UserHandler userhandler = new UserHandler();
+//                    saxParser.parse(xmlDataBasePath.toFile(), userhandler);
+//
+//                    gameInfoCache = userhandler.getGameInfoCache();
+////            gameInfoCache.forEach((aLong, cachedGameInfo) -> Debug.WriteLine("["+Long.toHexString(aLong)+"]\n"
+////                    + cachedGameInfo.getName() + "\n"
+////                    + cachedGameInfo.getPublisher() + "\n"
+////                    + cachedGameInfo.getReleaseDate() + "\n"
+////                    + cachedGameInfo.getRegion() + "\n"));
+//
+//                }
+//                Debug.WriteLine(String.format("NES XML loading done, %d roms total", gameInfoCache.size()));
+//            } catch (SAXException | ParserConfigurationException | IOException e) {
+//                e.printStackTrace();
+//            }
+//            Path xmlDataBasePath = Paths.get(Paths.get(".", "data").toString(), "snescarts.xml");
 //            Debug.WriteLine("Loading " + xmlDataBasePath);
 //
-//            if (File.exists(xmlDataBasePath)) {
+//            if (Files.exists(xmlDataBasePath)) {
 //                var xpath = new XPathDocument(xmlDataBasePath);
 //                var navigator = xpath.createNavigator();
 //                var iterator = navigator.select("/Data");
@@ -452,6 +484,52 @@ public class SnesGame extends MiniApplication implements ICloverAutofill {
 //            Debug.WriteLine(String.format("SNES XML loading done, {0} roms total", gameInfoCache.count));
 //        } catch (Exception ex) {
 //            Debug.WriteLine(ex.message + ex.stackTrace);
+//        }
+    };
+//    private static class UserHandler extends DefaultHandler {
+//
+//        @Getter
+//        private Map<Long, CachedGameInfo> gameInfoCache;
+//
+//        private CachedGameInfo cachedGameInfo;
+//        private String crc;
+//
+//        public UserHandler() {
+//            this.gameInfoCache = new HashMap<>();
+//        }
+//
+//        @Override
+//        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+//            if (qName.equals("game")) {
+//                //Debug.WriteLine("Start: " + qName);
+//                cachedGameInfo = new CachedGameInfo();
+//                String value = attributes.getValue("name");
+//                cachedGameInfo.setName(value == null ? "" : value);
+//                value = attributes.getValue("players");
+//                cachedGameInfo.setPlayers(value == null ? 1 : Byte.parseByte(value));
+//                value = attributes.getValue("date");
+//                cachedGameInfo.setReleaseDate(value == null ? "" : value);
+//                value = attributes.getValue("publisher");
+//                cachedGameInfo.setPublisher(value == null ? "" : value);
+//                value = attributes.getValue("region");
+//                cachedGameInfo.setRegion(value == null ? "" : value);
+//            }
+//            if (qName.equals("cartridge")) {
+//                crc = attributes.getValue("crc");
+//            }
+//
+//        }
+//
+//        @Override
+//        public void endElement(String uri, String localName, String qName) throws SAXException {
+//            if (qName.equals("game")) {
+//                //Debug.WriteLine("End: " +qName);
+//                if (gameInfoCache != null) {
+//                    gameInfoCache.put(Long.parseLong(crc, 16), cachedGameInfo);
+//                    cachedGameInfo = null;
+//                    crc = null;
+//                }
+//            }
 //        }
 //    }
 //

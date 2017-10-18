@@ -2,6 +2,7 @@ package clovershell;
 
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import lombok.Getter;
+import lombok.Setter;
 import org.usb4java.*;
 import tools.Debug;
 import tools.Lists;
@@ -30,7 +31,8 @@ public class ClovershellConnection implements DataReceivedListener {
     private ExecConnection[] execConnections = new ExecConnection[256];
     @Getter
     boolean enabled = false;
-    boolean autoreconnect = true;
+    @Setter
+    boolean autoreconnect = false;
     byte[] lastPingResponse = null;
     Calendar lastAliveTime;
     EndpointReader epReader;
@@ -42,7 +44,7 @@ public class ClovershellConnection implements DataReceivedListener {
 
     private List<ConnectedListener> listeners = new ArrayList<>();
 
-    public void addListener(ConnectedListener l) {
+    public void addOnConnectedListener(ConnectedListener l) {
         listeners.add(l);
     }
 
@@ -65,7 +67,6 @@ public class ClovershellConnection implements DataReceivedListener {
                         DeviceHandle handle = new DeviceHandle();
                         try {
                             int fresult = LibUsb.open(device, handle);
-                            Debug.WriteLine(fresult);
                             if (fresult != LibUsb.SUCCESS) {
                                 Debug.WriteLine("Unable to open USB device " + fresult);
                                 break;
@@ -142,8 +143,11 @@ public class ClovershellConnection implements DataReceivedListener {
                                     }
                                 }
                                 break;
-                            } catch (ClovershellException ex) {
+                            } catch (Exception ex) {
                                 Debug.WriteLine(ex.getMessage() + ex.getStackTrace());
+                                break;
+                            } catch (ClovershellException e) {
+                                e.printStackTrace();
                                 break;
                             }
                         } finally {
@@ -213,14 +217,20 @@ public class ClovershellConnection implements DataReceivedListener {
         buff[1] = 0;
         buff[2] = 0;
         buff[3] = 0;
+        while(epWriter.isLocked()) ;
+        epWriter.setLocked(true);
         tLen = epWriter.write(buff);
+        epWriter.setLocked(false);
         if (tLen != buff.length)
             throw new ClovershellException("kill all shell: write error!");
         buff[0] = (byte) ClovershellCommand.CMD_EXEC_KILL_ALL.getType();
         buff[1] = 0;
         buff[2] = 0;
         buff[3] = 0;
+        while(epWriter.isLocked()) ;
+        epWriter.setLocked(true);
         tLen = epWriter.write(buff);
+        epWriter.setLocked(false);
         if (tLen != buff.length)
             throw new ClovershellException("kill all exec: write error!");
     }
@@ -241,7 +251,7 @@ public class ClovershellConnection implements DataReceivedListener {
 
         int len = (l >= 0) ? l : ((data != null) ? (data.length - pos) : 0);
 
-        Debug.WriteLine(String.format("->[CLV] cmd=%s, arg=%X2, len=%d, data=%s", cmd, arg, len, data != null ? Arrays.toString(data) : ""));
+        if(cmd != ClovershellCommand.CMD_PING ) Debug.WriteLine(String.format("->[CLV] cmd=%s, arg=%X2, len=%d, data=%s", cmd, arg, len, data != null ? Arrays.toString(data) : ""));
 
         byte[] buff = new byte[len + 4];
         buff[0] = (byte) cmd.getType();
@@ -258,9 +268,12 @@ public class ClovershellConnection implements DataReceivedListener {
             byte[] tb = new byte[len];
             System.arraycopy(buff, pos, tb, 0, len);
 
+            while(epWriter.isLocked()) Thread.sleep(100);
+            epWriter.setLocked(true);
             tLen = epWriter.write(tb);
+            epWriter.setLocked(false);
 
-            Debug.WriteLine("->[CLV] " + Arrays.toString(tb));
+            //Debug.WriteLine("->[CLV] " + Arrays.toString(tb));
             pos += tLen;
             len -= tLen;
             if (tLen == -1) {
@@ -325,14 +338,17 @@ public class ClovershellConnection implements DataReceivedListener {
     @Override
     public void dataReceived(ByteBuffer buffer) {
         int pos = 0;
-        byte[] buff = new byte[buffer.remaining()];
+        Debug.WriteLine(buffer.slice().remaining());
+        byte[] buff = new byte[buffer.slice().remaining()];
         buffer.get(buff);
         int count = buff.length;
 
-        while (count > 0) {
+        while (count > 1) {
             ClovershellCommand cmd = ClovershellCommand.get(buff[pos]);
             byte arg = buff[pos + 1];
             int len = buff[pos + 2] | (buff[pos + 3] * 0x100);
+            if(len == 0) break;
+            if(cmd != ClovershellCommand.CMD_PING && cmd != ClovershellCommand.CMD_PONG) Debug.WriteLine(count);
             proceedPacket(cmd, arg, buff, pos + 4, len);
             count -= len + 4;
             pos += len + 4;
@@ -344,7 +360,7 @@ public class ClovershellConnection implements DataReceivedListener {
             len = data.length;
         byte[] tb = new byte[len];
         System.arraycopy(data, pos, tb, 0, len);
-        Debug.WriteLine(String.format("<-[CLV] cmd=%s, arg=%dX2, len=%d, data=%s", cmd, arg, len, Arrays.toString(tb)));
+        if(cmd != ClovershellCommand.CMD_PING && cmd != ClovershellCommand.CMD_PONG) Debug.WriteLine(String.format("<-[CLV] cmd=%s, arg=%dX2, len=%d, data=%s", cmd, arg, len, Arrays.toString(tb)));
 
         lastAliveTime = Calendar.getInstance();
         switch (cmd) {
@@ -362,6 +378,7 @@ public class ClovershellConnection implements DataReceivedListener {
                 shellClosed(arg);
                 break;
             case CMD_EXEC_NEW_RESP:
+                Debug.WriteLine(new String(data, pos, len, Charset.forName("UTF-8")));
                 newExecConnection(arg, new String(data, pos, len, Charset.forName("UTF-8")));
                 break;
             case CMD_EXEC_STDOUT:
@@ -412,7 +429,7 @@ public class ClovershellConnection implements DataReceivedListener {
                 e.printStackTrace();
             }
         c.setLastDataTime(Calendar.getInstance());
-        //Debug.WriteLine("stdout: " + Encoding.UTF8.GetString(data, pos, len));
+        Debug.WriteLine("stdout: " + new String(data, pos, len, Charset.forName("UTF-8")));
         if (len == 0)
             c.setStdoutFinished(true);
     }

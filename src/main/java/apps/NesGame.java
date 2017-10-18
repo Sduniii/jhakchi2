@@ -106,26 +106,33 @@ public class NesGame extends MiniApplication implements ICloverAutofill, ISuppor
         return true;
     }
 
-    public static void loadCache() throws ParserConfigurationException, SAXException, IOException {
-        Path xmlDataBasePath = Paths.get(".", "data", "nescarts.xml");
-        Debug.WriteLine("Loading " + xmlDataBasePath);
-        Debug.WriteLine(xmlDataBasePath.toFile().exists());
+    public static Runnable loadCache = () -> {
+        try {
+            Path xmlDataBasePath = Paths.get(".", "data", "nescarts.xml");
+            Debug.WriteLine("Loading " + xmlDataBasePath);
+            Debug.WriteLine(xmlDataBasePath.toFile().exists());
 
-        if (Files.exists(xmlDataBasePath)) {
-            SAXParserFactory factory = SAXParserFactory.newInstance();
-            SAXParser saxParser = factory.newSAXParser();
-            UserHandler userhandler = new UserHandler();
-            saxParser.parse(xmlDataBasePath.toFile(), userhandler);
-            gameInfoCache = userhandler.getGameInfoCache();
+            if (Files.exists(xmlDataBasePath)) {
+                SAXParserFactory factory = SAXParserFactory.newInstance();
+                SAXParser saxParser = null;
+
+                saxParser = factory.newSAXParser();
+                UserHandler userhandler = new UserHandler();
+                saxParser.parse(xmlDataBasePath.toFile(), userhandler);
+
+                gameInfoCache = userhandler.getGameInfoCache();
 //            gameInfoCache.forEach((aLong, cachedGameInfo) -> Debug.WriteLine("["+Long.toHexString(aLong)+"]\n"
 //                    + cachedGameInfo.getName() + "\n"
 //                    + cachedGameInfo.getPublisher() + "\n"
 //                    + cachedGameInfo.getReleaseDate() + "\n"
 //                    + cachedGameInfo.getRegion() + "\n"));
 
+            }
+            Debug.WriteLine(String.format("NES XML loading done, %d roms total", gameInfoCache.size()));
+        } catch (SAXException | ParserConfigurationException | IOException e) {
+            e.printStackTrace();
         }
-        Debug.WriteLine(String.format("NES XML loading done, %d roms total", gameInfoCache.size()));
-    }
+    };
 
     @Override
     public Boolean tryAutofill(long crc32) {

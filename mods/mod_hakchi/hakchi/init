@@ -1,0 +1,38 @@
+init(){
+echo
+/bin/busybox --install -s /bin/
+
+local modname="hakchi"
+local modpath="/$modname"
+local mountpoint="/newroot"
+local installpath=""
+local firmwarepath=""
+local rootfs=""
+local squashfs=""
+local preinit=""
+local preinitpath=""
+local sftype=""
+local sfregion=""
+local gamepath=""
+local temppath="/tmp"
+
+mkdir -p "$temppath"
+
+source "$modpath/config"
+source "$modpath/script/base"
+
+if [ -d "$modpath/transfer" ]; then
+  source "$modpath/script/transfer"
+else
+  mount_base
+fi
+
+if [ -f "$preinit" ]; then
+  source "$preinit"
+  preinit
+else
+  umount_base
+fi
+}
+
+init
