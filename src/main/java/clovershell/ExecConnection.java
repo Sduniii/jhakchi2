@@ -7,6 +7,7 @@ import tools.PositionInputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Calendar;
 
 public class ExecConnection {
@@ -28,7 +29,7 @@ public class ExecConnection {
     private OutputStream stdout;
     @Setter
     @Getter
-    private OutputStream stderr;
+    private ByteBuffer stderr;
     @Setter
     @Getter
     private int id;
@@ -94,7 +95,7 @@ public class ExecConnection {
     };
 
 
-    public ExecConnection(ClovershellConnection connection, String command, PositionInputStream stdin, OutputStream stdout, OutputStream stderr) {
+    public ExecConnection(ClovershellConnection connection, String command, PositionInputStream stdin, OutputStream stdout, ByteBuffer stderr) {
         this.connection = connection;
         this.command = command;
         id = -1;

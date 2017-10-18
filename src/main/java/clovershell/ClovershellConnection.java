@@ -1,12 +1,15 @@
 package clovershell;
 
+import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 import lombok.Getter;
 import org.usb4java.*;
 import tools.Debug;
 import tools.Lists;
+import tools.PositionInputStream;
 import tools.UsbDevices;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -21,8 +24,8 @@ public class ClovershellConnection implements DataReceivedListener {
     @Getter
     boolean online = false;
     short schellPort = 1023;
-    Queue<ShellConnection> pendingShellConnections = new PriorityQueue<ShellConnection>();
-    List<ExecConnection> pendingExecConnections = new ArrayList<ExecConnection>();
+    Queue<ShellConnection> pendingShellConnections = new PriorityQueue<>();
+    List<ExecConnection> pendingExecConnections = new ArrayList<>();
     private ShellConnection[] shellConnections = new ShellConnection[256];
     private ExecConnection[] execConnections = new ExecConnection[256];
     @Getter
@@ -131,10 +134,9 @@ public class ClovershellConnection implements DataReceivedListener {
                                 onConnected();
                                 int p = 0;
 
-                                while ((p = ping()) > 0) {
-                                    Thread.sleep(100);
-                                    System.out.println(p);
-                                    if ((idleTime() >= 10) && (p < 0)) {
+                                while ((p = ping()) >= 0) {
+                                    Thread.sleep(1000);
+                                    if ((idleTime() >= 1000) && (p < 0)) {
                                         Debug.WriteLine("no answer from device");
                                         break;
                                     }
@@ -171,7 +173,7 @@ public class ClovershellConnection implements DataReceivedListener {
     };
 
     private void onDisconnected() {
-        for(ConnectedListener l : listeners){
+        for (ConnectedListener l : listeners) {
             l.onConnected(false);
         }
     }
@@ -419,11 +421,8 @@ public class ClovershellConnection implements DataReceivedListener {
         ExecConnection c = execConnections[arg];
         if (c == null) return;
         if (c.getStderr() != null)
-            try {
-                c.getStderr().write(data, pos, len);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            c.getStderr().put(data, pos, len);
+
         //Debug.WriteLine("stderr: " + Encoding.UTF8.GetString(data, pos, len));
         c.setLastDataTime(Calendar.getInstance());
         if (len == 0)
@@ -455,5 +454,50 @@ public class ClovershellConnection implements DataReceivedListener {
         if (shellConnections[id] == null) return;
         shellConnections[id].Dispose();
         shellConnections[id] = null;
+    }
+
+    public String executeSimple(String command, int timeout, boolean throwOnNonZero) throws ClovershellException, IOException, InterruptedException {
+        ByteOutputStream stdOut = new ByteOutputStream();
+        execute(command, null, stdOut, null, timeout, throwOnNonZero);
+        byte[] buff = stdOut.getBytes();
+        return new String(buff, Charset.forName("UTF-8")).trim();
+    }
+
+    public int execute(String command, PositionInputStream stdin, OutputStream stdout, ByteBuffer stderr, int timeout, boolean throwOnNonZero) throws ClovershellException, InterruptedException, IOException {
+        if (!online) throw new ClovershellException("NES Mini is offline");
+        if (throwOnNonZero && stderr == null)
+            stderr = ByteBuffer.allocate(255);
+        ExecConnection c = new ExecConnection(this, command, stdin, stdout, stderr);
+        try {
+            pendingExecConnections.add(c);
+            writeUsb(ClovershellCommand.CMD_EXEC_NEW_REQ, (byte) 0, command.getBytes(Charset.forName("UTF-8")), 0, -1);
+            int t = 0;
+            while (c.getId() < 0) {
+                Thread.sleep(50);
+                t++;
+                if (t >= 50)
+                    throw new ClovershellException("exec request timeout");
+            }
+            while (!c.isFinished()) {
+                Thread.sleep(50);
+                if (!online)
+                    throw new ClovershellException("device goes offline");
+                if (!c.isFinished() && timeout > 0 && Calendar.getInstance().getTimeInMillis() - c.getLastDataTime().getTimeInMillis() > timeout)
+                    throw new ClovershellException("clovershell read timeout");
+            }
+            if (throwOnNonZero && c.getResult() != 0) {
+                String errText = "";
+                stderr.reset();
+                byte[] b = new byte[stderr.remaining()];
+                stderr.get(b);
+                errText = ": " + new String(b);
+                throw new ClovershellException(String.format("shell command \"%s\" returned exit code %d%s", command, c.getResult(), errText));
+            }
+            return c.getResult();
+        } finally {
+            if (c.getId() >= 0)
+                execConnections[c.getId()] = null;
+        }
+
     }
 }
