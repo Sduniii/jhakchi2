@@ -11,8 +11,8 @@ public class UsbDevices {
     private static Boolean isConnected = false;
     private static Context context;
 
-    public static void openConnection(){
-        if(!isConnected){
+    public static void openConnection() {
+        if (!isConnected) {
             context = new Context();
             int result = LibUsb.init(context);
             if (result != LibUsb.SUCCESS) throw new LibUsbException("Unable to initialize libusb.", result);
@@ -20,15 +20,15 @@ public class UsbDevices {
         }
     }
 
-    public static void closeConnection(){
-        if(isConnected){
+    public static void closeConnection() {
+        if (isConnected) {
             LibUsb.exit(context);
             isConnected = false;
         }
     }
 
     public static Device findDevice(short vendorId, short productId) {
-        if(!isConnected) return null;
+        if (!isConnected) return null;
         // Read the USB device list
         DeviceList list = new DeviceList();
         int result = LibUsb.getDeviceList(context, list);
@@ -52,9 +52,8 @@ public class UsbDevices {
         return null;
     }
 
-    public static int write(DeviceHandle handle, byte[] data, byte outEndpoint, int timeout)
-    {
-        if(isConnected) {
+    public static int write(DeviceHandle handle, byte[] data, byte outEndpoint, int timeout) {
+        if (isConnected) {
             ByteBuffer buffer = BufferUtils.allocateByteBuffer(data.length);
             buffer.put(data);
             IntBuffer transferred = BufferUtils.allocateIntBuffer();
@@ -64,7 +63,7 @@ public class UsbDevices {
                 Debug.WriteLine("Unable to send data " + result);
                 return -1;
             }
-            int r =  transferred.get();
+            int r = transferred.get();
             System.out.println(r + " bytes sent to device");
             return r;
         }
@@ -72,13 +71,11 @@ public class UsbDevices {
     }
 
 
-    public static ByteBuffer read(DeviceHandle handle, int size, byte inEndpoint, int timeout)
-    {
-        if(isConnected) {
+    public static ByteBuffer read(DeviceHandle handle, int size, byte inEndpoint, int timeout) {
+        if (isConnected) {
             ByteBuffer buffer = BufferUtils.allocateByteBuffer(size).order(ByteOrder.LITTLE_ENDIAN);
             IntBuffer transferred = BufferUtils.allocateIntBuffer();
-            int result = LibUsb.bulkTransfer(handle, inEndpoint, buffer,
-                    transferred, timeout);
+            int result = LibUsb.bulkTransfer(handle, inEndpoint, buffer, transferred, timeout);
             if (result != LibUsb.SUCCESS) {
                 Debug.WriteLine("Unable to read data " + result);
                 return null;
@@ -89,8 +86,8 @@ public class UsbDevices {
         return null;
     }
 
-    public static  void listDevices() {
-        if(!isConnected) return;
+    public static void listDevices() {
+        if (!isConnected) return;
         // Read the USB device list
         DeviceList list = new DeviceList();
         int result = LibUsb.getDeviceList(context, list);

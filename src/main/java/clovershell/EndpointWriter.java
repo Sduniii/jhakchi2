@@ -1,6 +1,8 @@
 package clovershell;
 
 import org.usb4java.DeviceHandle;
+import org.usb4java.LibUsb;
+import org.usb4java.Transfer;
 import tools.UsbDevices;
 
 public class EndpointWriter {
@@ -15,7 +17,8 @@ public class EndpointWriter {
         this.timeout = timeout;
     }
 
-    public int write(byte[] data) {
-        return UsbDevices.write(handle, data, endp, timeout);
+    public synchronized int write(byte[] data) {
+        int w = UsbDevices.write(handle, data, endp, timeout);
+        return w;
     }
 }

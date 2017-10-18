@@ -51,19 +51,16 @@ public class EndpointReader {
         }
     }
 
-    private Runnable runner = new Runnable() {
-        @Override
-        public void run() {
-            while(true) {
-                ByteBuffer bf = read();
-                if (bf != null) {
-                    fireEvent(bf);
-                }
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+    private Runnable runner = () -> {
+        while(true) {
+            ByteBuffer bf = read();
+            if (bf != null) {
+                fireEvent(bf);
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     };

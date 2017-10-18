@@ -1,30 +1,17 @@
 package gui.controller;
 
-import apps.AppTypeCollection;
-import apps.MiniApplication;
-import apps.wrapper.ParameterWrapper;
-import clovershell.Clovershell;
+import clovershell.ClovershellConnection;
 import clovershell.ConnectedListener;
-import clovershell.DataReceivedListener;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Circle;
-import tools.Debug;
-import tools.UsbDevices;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.ResourceBundle;
 
 public class OverviewController implements Initializable, ConnectedListener {
@@ -33,7 +20,7 @@ public class OverviewController implements Initializable, ConnectedListener {
     Circle connectedCircle;
 
     public void initialize(URL location, ResourceBundle resources) {
-        Clovershell clovershell = new Clovershell();
+        ClovershellConnection clovershell = new ClovershellConnection();
         clovershell.addListener(this);
         Platform.runLater(() -> clovershell.setEnabled(true));
     }
