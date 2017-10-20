@@ -7,7 +7,7 @@ import org.usb4java.*;
 import tools.Debug;
 import tools.Lists;
 import tools.PositionInputStream;
-import tools.UsbDevices;
+import usb.lowapi.UsbDevices;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,7 +49,7 @@ public class ClovershellConnection implements DataReceivedListener {
     }
 
 
-    Runnable mainThreadLoop = new Runnable() {
+    private Runnable mainThreadLoop = new Runnable() {
         @Override
         public void run() {
             UsbDevices.openConnection();
@@ -58,10 +58,10 @@ public class ClovershellConnection implements DataReceivedListener {
                     online = false;
                     Debug.WriteLine("Waiting for ClovershellConnection");
                     while (enabled) {
-                        int inEndp = -1;
-                        int outEndp = -1;
-                        int inMax = 0;
-                        int outMax = 0;
+                        byte inEndp = -1;
+                        byte outEndp = -1;
+                        byte inMax = 0;
+                        byte outMax = 0;
                         Device device = UsbDevices.findDevice((short) vid, (short) pid);
                         if (device == null) break;
                         DeviceHandle handle = new DeviceHandle();
@@ -71,85 +71,41 @@ public class ClovershellConnection implements DataReceivedListener {
                                 Debug.WriteLine("Unable to open USB device " + fresult);
                                 break;
                             }
-                            try {
 
-                                final DeviceDescriptor descriptor = new DeviceDescriptor();
-                                int result = LibUsb.getDeviceDescriptor(device, descriptor);
-                                if (result < 0) {
-                                    Debug.WriteLine("Unable to read device descriptor " + result);
+                            byte[] res = UsbDevices.checkDevice(device, handle);
+                            inEndp = res[0];
+                            outEndp = res[1];
+                            inMax = res[2];
+                            outMax = res[3];
+
+                            if (inEndp != (byte) 0x81 || outEndp != (byte) 0x01)
+                                break;
+                            setEpReader(new EndpointReader(inEndp, 65536, handle, 1000));
+                            epWriter = new EndpointWriter(handle, outEndp, 1000);
+                            while (epReader.read().getResultCode() == LibUsb.SUCCESS) ;
+                            epReader.start();
+                            lastAliveTime = Calendar.getInstance();
+                            Debug.WriteLine("ClovershellConnection connected");
+                            // Kill all other sessions and drop all output
+                            killAll();
+                            online = true;
+                            onConnected();
+                            int p = 0;
+
+                            while ((p = ping()) >= 0) {
+                                Thread.sleep(1000);
+                                if ((idleTime() >= 1000) && (p < 0)) {
+                                    Debug.WriteLine("no answer from device");
                                     break;
                                 }
-
-                                for (byte i = 0; i < descriptor.bNumConfigurations(); i += 1) {
-                                    final ConfigDescriptor cdescriptor = new ConfigDescriptor();
-                                    final int cresult = LibUsb.getConfigDescriptor(device, i, cdescriptor);
-                                    if (result < 0) {
-                                        Debug.WriteLine("Unable to read config descriptor " + result);
-                                        break;
-                                    }
-                                    try {
-                                        for (byte j = 0; j < cdescriptor.bNumInterfaces(); j++) {
-
-                                            final int iresult = LibUsb.claimInterface(handle, j);
-                                            if (iresult != LibUsb.SUCCESS) {
-                                                Debug.WriteLine("Unable to claim interface " + result);
-                                                break;
-                                            }
-                                            try {
-                                                for (Interface iface : cdescriptor.iface()) {
-                                                    for (InterfaceDescriptor ifd : iface.altsetting()) {
-                                                        for (EndpointDescriptor epd : ifd.endpoint()) {
-                                                            if ((epd.bEndpointAddress() & (byte) 0x80) != 0) {
-                                                                inEndp = epd.bEndpointAddress();
-                                                                inMax = epd.wMaxPacketSize();
-                                                            } else {
-                                                                outEndp = epd.bEndpointAddress();
-                                                                outMax = epd.wMaxPacketSize();
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            } finally {
-                                                result = LibUsb.releaseInterface(handle, j);
-                                                if (result != LibUsb.SUCCESS)
-                                                    Debug.WriteLine("Unable to release interface " + result);
-                                            }
-                                        }
-                                    } finally {
-                                        // Ensure that the config descriptor is freed
-                                        LibUsb.freeConfigDescriptor(cdescriptor);
-                                    }
-                                }
-
-                                if (inEndp != (byte) 0x81 || outEndp != (byte) 0x01)
-                                    break;
-                                setEpReader(new EndpointReader((byte) inEndp, 65536, handle, 1000));
-                                epWriter = new EndpointWriter(handle, (byte) outEndp, 1000);
-                                while (epReader.read() != null) ;
-                                epReader.start();
-                                lastAliveTime = Calendar.getInstance();
-                                Debug.WriteLine("ClovershellConnection connected");
-                                // Kill all other sessions and drop all output
-                                killAll();
-                                online = true;
-                                onConnected();
-                                int p = 0;
-
-                                while ((p = ping()) >= 0) {
-                                    Thread.sleep(1000);
-                                    if ((idleTime() >= 1000) && (p < 0)) {
-                                        Debug.WriteLine("no answer from device");
-                                        break;
-                                    }
-                                }
-                                break;
-                            } catch (Exception ex) {
-                                Debug.WriteLine(ex.getMessage() + ex.getStackTrace());
-                                break;
-                            } catch (ClovershellException e) {
-                                e.printStackTrace();
-                                break;
                             }
+                            break;
+                        } catch (Exception ex) {
+                            Debug.WriteLine(ex.getMessage() + ex.getStackTrace());
+                            break;
+                        } catch (ClovershellException e) {
+                            e.printStackTrace();
+                            break;
                         } finally {
                             LibUsb.close(handle);
                         }
@@ -217,7 +173,7 @@ public class ClovershellConnection implements DataReceivedListener {
         buff[1] = 0;
         buff[2] = 0;
         buff[3] = 0;
-        while(epWriter.isLocked()) ;
+        while (epWriter.isLocked()) ;
         epWriter.setLocked(true);
         tLen = epWriter.write(buff);
         epWriter.setLocked(false);
@@ -227,7 +183,7 @@ public class ClovershellConnection implements DataReceivedListener {
         buff[1] = 0;
         buff[2] = 0;
         buff[3] = 0;
-        while(epWriter.isLocked()) ;
+        while (epWriter.isLocked()) ;
         epWriter.setLocked(true);
         tLen = epWriter.write(buff);
         epWriter.setLocked(false);
@@ -239,9 +195,35 @@ public class ClovershellConnection implements DataReceivedListener {
         if (enabled == value) return;
         enabled = value;
         if (value) {
-            mainThread = new Thread(mainThreadLoop);
-            mainThread.start();
-            Debug.WriteLine("Thread startet!");
+            if (!LibUsb.hasCapability(LibUsb.CAP_HAS_HOTPLUG)) {
+                mainThread = new Thread(mainThreadLoop);
+                mainThread.start();
+                Debug.WriteLine("Thread startet!");
+            } else {
+                UsbDevices.openConnection();
+                EventHandlingThread thread = new EventHandlingThread();
+                thread.start();
+                HotplugCallbackHandle callbackHandle = new HotplugCallbackHandle();
+                int result = LibUsb.hotplugRegisterCallback(null, LibUsb.HOTPLUG_EVENT_DEVICE_ARRIVED | LibUsb.HOTPLUG_EVENT_DEVICE_LEFT,
+                        LibUsb.HOTPLUG_ENUMERATE,
+                        LibUsb.HOTPLUG_MATCH_ANY,
+                        LibUsb.HOTPLUG_MATCH_ANY,
+                        LibUsb.HOTPLUG_MATCH_ANY,
+                        hotplugCallback, null, callbackHandle);
+                if (result != LibUsb.SUCCESS) {
+                    thread.abort();
+                    LibUsb.hotplugDeregisterCallback(null, callbackHandle);
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Debug.WriteLine("Unable to register hotplug callback " + result);
+                    mainThread = new Thread(mainThreadLoop);
+                    mainThread.start();
+                    Debug.WriteLine("Thread startet!");
+                }
+            }
         }
     }
 
@@ -251,7 +233,8 @@ public class ClovershellConnection implements DataReceivedListener {
 
         int len = (l >= 0) ? l : ((data != null) ? (data.length - pos) : 0);
 
-        if(cmd != ClovershellCommand.CMD_PING ) Debug.WriteLine(String.format("->[CLV] cmd=%s, arg=%X2, len=%d, data=%s", cmd, arg, len, data != null ? Arrays.toString(data) : ""));
+        if (cmd != ClovershellCommand.CMD_PING)
+            Debug.WriteLine(String.format("->[CLV] cmd=%s, arg=%X2, len=%d, data=%s", cmd, arg, len, data != null ? Arrays.toString(data) : ""));
 
         byte[] buff = new byte[len + 4];
         buff[0] = (byte) cmd.getType();
@@ -265,12 +248,9 @@ public class ClovershellConnection implements DataReceivedListener {
         len += 4;
         int repeats = 0;
         while (pos < len) {
-            byte[] tb = new byte[len];
-            System.arraycopy(buff, pos, tb, 0, len);
-
-            while(epWriter.isLocked()) Thread.sleep(100);
+            while (epWriter.isLocked()) Thread.sleep(100);
             epWriter.setLocked(true);
-            tLen = epWriter.write(tb);
+            tLen = epWriter.write(buff, pos, len);
             epWriter.setLocked(false);
 
             //Debug.WriteLine("->[CLV] " + Arrays.toString(tb));
@@ -336,19 +316,16 @@ public class ClovershellConnection implements DataReceivedListener {
     }
 
     @Override
-    public void dataReceived(ByteBuffer buffer) {
+    public void dataReceived(byte[] buff) {
         int pos = 0;
-        Debug.WriteLine(buffer.slice().remaining());
-        byte[] buff = new byte[buffer.slice().remaining()];
-        buffer.get(buff);
         int count = buff.length;
 
         while (count > 1) {
             ClovershellCommand cmd = ClovershellCommand.get(buff[pos]);
             byte arg = buff[pos + 1];
             int len = buff[pos + 2] | (buff[pos + 3] * 0x100);
-            if(len == 0) break;
-            if(cmd != ClovershellCommand.CMD_PING && cmd != ClovershellCommand.CMD_PONG) Debug.WriteLine(count);
+            if (len == 0) break;
+            if (cmd != ClovershellCommand.CMD_PING && cmd != ClovershellCommand.CMD_PONG) Debug.WriteLine(count);
             proceedPacket(cmd, arg, buff, pos + 4, len);
             count -= len + 4;
             pos += len + 4;
@@ -360,7 +337,8 @@ public class ClovershellConnection implements DataReceivedListener {
             len = data.length;
         byte[] tb = new byte[len];
         System.arraycopy(data, pos, tb, 0, len);
-        if(cmd != ClovershellCommand.CMD_PING && cmd != ClovershellCommand.CMD_PONG) Debug.WriteLine(String.format("<-[CLV] cmd=%s, arg=%dX2, len=%d, data=%s", cmd, arg, len, Arrays.toString(tb)));
+        if (cmd != ClovershellCommand.CMD_PING && cmd != ClovershellCommand.CMD_PONG)
+            Debug.WriteLine(String.format("<-[CLV] cmd=%s, arg=%dX2, len=%d, data=%s", cmd, arg, len, Arrays.toString(tb)));
 
         lastAliveTime = Calendar.getInstance();
         switch (cmd) {
@@ -461,7 +439,6 @@ public class ClovershellConnection implements DataReceivedListener {
         c.setStdinPipeSize(data[pos + 4] | data[pos + 5] * 0x100 | data[pos + 6] * 0x10000 | data[pos + 7] * 0x1000000);
     }
 
-
     void shellOut(byte id, byte[] data, int pos, int len) {
         if (shellConnections[id] == null) return;
         shellConnections[id].send(data, pos, len);
@@ -515,6 +492,85 @@ public class ClovershellConnection implements DataReceivedListener {
             if (c.getId() >= 0)
                 execConnections[c.getId()] = null;
         }
-
     }
+
+    private class EventHandlingThread extends Thread {
+        /**
+         * If thread should abort.
+         */
+        private volatile boolean abort = false;
+
+        /**
+         * Aborts the event handling thread.
+         */
+        public void abort() {
+            this.abort = true;
+        }
+
+        @Override
+        public void run() {
+            while (!this.abort) {
+                // Let libusb handle pending events. This blocks until events
+                // have been handled, a hotplug callback has been deregistered
+                // or the specified time of 1 second (Specified in
+                // Microseconds) has passed.
+                int result = LibUsb.handleEventsTimeout(null, 1000000);
+                if (result != LibUsb.SUCCESS)
+                    throw new LibUsbException("Unable to handle events", result);
+            }
+            UsbDevices.closeConnection();
+        }
+    }
+
+    private final HotplugCallback hotplugCallback = new HotplugCallback() {
+        @Override
+        public int processEvent(Context context, Device device, int event, Object userData) {
+            try {
+                if (event == LibUsb.HOTPLUG_EVENT_DEVICE_ARRIVED) {
+                    DeviceHandle handle = new DeviceHandle();
+                    int fresult = LibUsb.open(device, handle);
+                    if (fresult != LibUsb.SUCCESS) {
+                        //Debug.WriteLine("Unable to open USB device " + fresult);
+                        return -1;
+                    }
+                    try {
+                        byte[] res = UsbDevices.checkDevice(device, handle);
+                        byte inEndp = res[0];
+                        byte outEndp = res[1];
+                        byte inMax = res[2];
+                        byte outMax = res[3];
+
+                        if (inEndp != (byte) 0x81 || outEndp != (byte) 0x01)
+                            return -1;
+                        setEpReader(new EndpointReader((byte) inEndp, 65536, handle, 1000));
+                        epWriter = new EndpointWriter(handle, (byte) outEndp, 1000);
+                        while (epReader.read().getResultCode() == LibUsb.SUCCESS) ;
+                        epReader.start();
+                        lastAliveTime = Calendar.getInstance();
+                        Debug.WriteLine("ClovershellConnection connected");
+                        // Kill all other sessions and drop all output
+                        killAll();
+                        online = true;
+                        onConnected();
+                    } finally {
+                        LibUsb.close(handle);
+                    }
+                } else {
+                    if (online) Debug.WriteLine("ClovershellConnection disconnected");
+                    online = false;
+                    onDisconnected();
+                    if (epReader != null)
+                        epReader.dispose();
+                    epReader = null;
+                    epWriter = null;
+                }
+
+                return 0;
+
+            } catch (ClovershellException | InterruptedException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }
+    };
 }

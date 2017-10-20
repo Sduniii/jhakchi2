@@ -3,7 +3,7 @@ package clovershell;
 import lombok.Getter;
 import lombok.Setter;
 import org.usb4java.DeviceHandle;
-import tools.UsbDevices;
+import usb.lowapi.UsbDevices;
 
 public class EndpointWriter {
 
@@ -23,5 +23,11 @@ public class EndpointWriter {
     public synchronized int write(byte[] data) {
         int w = UsbDevices.write(handle, data, endp, timeout);
         return w;
+    }
+
+    public synchronized int write(byte[] buffer, int pos, int length) {
+        byte[] bytes = new byte[length];
+        System.arraycopy(buffer,pos,bytes,0,length);
+        return write(bytes);
     }
 }

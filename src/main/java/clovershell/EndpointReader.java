@@ -1,9 +1,10 @@
 package clovershell;
 
 import org.usb4java.DeviceHandle;
-import tools.UsbDevices;
+import org.usb4java.LibUsb;
+import usb.lowapi.USBReadWrapper;
+import usb.lowapi.UsbDevices;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,28 +18,32 @@ public class EndpointReader {
     private int timeout;
     private Thread t;
 
-    public EndpointReader(byte endpoint, int size, DeviceHandle handle, int timeout){
+    public EndpointReader(byte endpoint, int size, DeviceHandle handle, int timeout) {
         this.endpoint = endpoint;
         this.size = size;
         this.handle = handle;
         this.timeout = timeout;
     }
 
-    public void addListener(DataReceivedListener listener){
+    public void addListener(DataReceivedListener listener) {
         this.listener.add(listener);
     }
 
-    public void fireEvent(ByteBuffer buffer){
+    public void fireEvent(USBReadWrapper wrapper) {
         for (DataReceivedListener dataReceivedListener : listener) {
-            dataReceivedListener.dataReceived(buffer);
+            dataReceivedListener.dataReceived(wrapper.getBuffer());
         }
     }
 
-    public ByteBuffer read(){
-        return UsbDevices.read(handle,size,endpoint,timeout);
+    public USBReadWrapper read() {
+        return UsbDevices.read(handle, size, endpoint, timeout);
     }
 
-    public void start(){
+    public USBReadWrapper read(int offset, int length) {
+        return UsbDevices.read(handle, length, (byte) offset, timeout);
+    }
+
+    public void start() {
         t = new Thread(runner);
         t.setPriority(7);
         t.start();
@@ -46,15 +51,15 @@ public class EndpointReader {
     }
 
     public void dispose() throws InterruptedException {
-        if(t!=null && t.isAlive()){
+        if (t != null && t.isAlive()) {
             t.join();
         }
     }
 
     private Runnable runner = () -> {
-        while(true) {
-            ByteBuffer bf = read();
-            if (bf != null) {
+        while (true) {
+            USBReadWrapper bf = read();
+            if (bf.getResultCode() == LibUsb.SUCCESS) {
                 fireEvent(bf);
             }
             try {

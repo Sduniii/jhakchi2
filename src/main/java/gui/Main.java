@@ -16,6 +16,8 @@ import java.io.IOException;
 
 public class Main extends Application {
 
+    public static Stage primaryStage;
+
     public static void main(String[] args) {
         try {
             SevenZip.initSevenZipFromPlatformJAR();
@@ -29,6 +31,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        Main.primaryStage = primaryStage;
         Pane root = null;
         try{
             root = FXMLLoader.load(getClass().getResource("/fxml/overview.fxml"));

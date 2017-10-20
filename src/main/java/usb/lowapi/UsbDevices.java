@@ -1,6 +1,7 @@
-package tools;
+package usb.lowapi;
 
 import org.usb4java.*;
+import tools.Debug;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -70,20 +71,33 @@ public class UsbDevices {
         return -1;
     }
 
-
-    public static ByteBuffer read(DeviceHandle handle, int size, byte inEndpoint, int timeout) {
+    public static USBReadWrapper read(DeviceHandle handle, int size, byte inEndpoint, int timeout) {
+        USBReadWrapper wrapper = new USBReadWrapper();
+        wrapper.setResultCode(-1);
         if (isConnected) {
             ByteBuffer buffer = BufferUtils.allocateByteBuffer(size).order(ByteOrder.LITTLE_ENDIAN);
             IntBuffer transferred = BufferUtils.allocateIntBuffer();
             int result = LibUsb.bulkTransfer(handle, inEndpoint, buffer, transferred, timeout);
+            wrapper.setResultCode(result);
             if (result != LibUsb.SUCCESS) {
-                Debug.WriteLine("Unable to read data " + result);
-                return null;
+                Debug.WriteLine("Unable t -1o read data " + result);
+                return wrapper;
             }
-            System.out.println(transferred.get() + " bytes read from device");
-            return buffer;
+            byte[] buff = new byte[buffer.slice().remaining()];
+            buffer.get(buff);
+            int len = 0;
+            for (int i = 0; i < buff.length; i++) {
+                if (buff.length >= i + 3 && buff[i + 1] == 0 && buff[i + 2] == 0)
+                    break;
+                len++;
+            }
+            byte[] r = new byte[len];
+            System.arraycopy(buff, 0, r, 0, len);
+            wrapper.setBuffer(r);
+            wrapper.setTransferred(len);
+            return wrapper;
         }
-        return null;
+        return wrapper;
     }
 
     public static void listDevices() {
@@ -105,5 +119,63 @@ public class UsbDevices {
             // Ensure the allocated device list is freed
             LibUsb.freeDeviceList(list, true);
         }
+    }
+
+    /**
+     * @param device
+     * @param handle
+     * @return int[] with 0:inEndp, 1:outEndp, 2:inMax, 3:outMax
+     */
+    public static byte[] checkDevice(Device device, DeviceHandle handle) {
+
+        byte[] res = new byte[]{-1, -1, 0, 0};
+        final DeviceDescriptor descriptor = new DeviceDescriptor();
+        int result = LibUsb.getDeviceDescriptor(device, descriptor);
+        if (result < 0) {
+            Debug.WriteLine("Unable to read device descriptor " + result);
+            return res;
+        }
+
+        for (byte i = 0; i < descriptor.bNumConfigurations(); i += 1) {
+            final ConfigDescriptor cdescriptor = new ConfigDescriptor();
+            final int cresult = LibUsb.getConfigDescriptor(device, i, cdescriptor);
+            if (cresult < 0) {
+                Debug.WriteLine("Unable to read config descriptor " + result);
+                return res;
+            }
+            try {
+                for (byte j = 0; j < cdescriptor.bNumInterfaces(); j++) {
+
+                    final int iresult = LibUsb.claimInterface(handle, j);
+                    if (iresult != LibUsb.SUCCESS) {
+                        Debug.WriteLine("Unable to claim interface " + result);
+                        break;
+                    }
+                    try {
+                        for (Interface iface : cdescriptor.iface()) {
+                            for (InterfaceDescriptor ifd : iface.altsetting()) {
+                                for (EndpointDescriptor epd : ifd.endpoint()) {
+                                    if ((epd.bEndpointAddress() & (byte) 0x80) != 0) {
+                                        res[0] = epd.bEndpointAddress();
+                                        res[2] = (byte) epd.wMaxPacketSize();
+                                    } else {
+                                        res[1] = epd.bEndpointAddress();
+                                        res[3] = (byte) epd.wMaxPacketSize();
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        result = LibUsb.releaseInterface(handle, j);
+                        if (result != LibUsb.SUCCESS)
+                            Debug.WriteLine("Unable to release interface " + result);
+                    }
+                }
+            } finally {
+                // Ensure that the config descriptor is freed
+                LibUsb.freeConfigDescriptor(cdescriptor);
+            }
+        }
+        return res;
     }
 }

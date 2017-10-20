@@ -27,7 +27,7 @@
 <?import javafx.scene.paint.Stop?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.control.ToggleGroup?>
+
 <BorderPane xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.controller.OverviewController">
     <top>
         <MenuBar BorderPane.alignment="CENTER">
@@ -39,18 +39,15 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Kernel">
                     <items>
-                        <MenuItem mnemonicParsing="false" text="Delete" />
+                        <MenuItem fx:id="menuItemFlashCustomKernel" mnemonicParsing="false" text="Flash Custom Kernel" />
                     </items>
                 </Menu>
             <Menu mnemonicParsing="false" text="Settings">
               <items>
                   <Menu mnemonicParsing="false" text="Console">
-                      <fx:define>
-                          <ToggleGroup fx:id="toggleGroupConsoleType"/>
-                      </fx:define>
                     <items>
-                        <RadioMenuItem fx:id="menuItemConsoleTypeSNES" mnemonicParsing="false" text="SNES (Europe/USA)" toggleGroup="$toggleGroupConsoleType"/>
-                        <RadioMenuItem fx:id="menuItemConsoleTypeSuperFamicon" mnemonicParsing="false" text="Super Famicon (Japan)" toggleGroup="$toggleGroupConsoleType"/>
+                        <RadioMenuItem fx:id="menuItemConsoleTypeSNES" mnemonicParsing="false" text="SNES (Europe/USA)" />
+                        <RadioMenuItem fx:id="menuItemConsoleTypeSuperFamicon" mnemonicParsing="false" text="Super Famicon (Japan)" />
                     </items>
                   </Menu>
               </items>
